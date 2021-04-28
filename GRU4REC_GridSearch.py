@@ -96,9 +96,7 @@ for num_epochs in num_epochs_grid:
                         max_val_hit = 0
                         max_test_hit = 0
                         
-                        for epoch in range(num_epochs):
-                            print("="*20,"Epoch {}".format(epoch+1),"="*20)
-                            
+                        for epoch in range(num_epochs):                            
                             model.train()  
                             
                             running_loss = 0
