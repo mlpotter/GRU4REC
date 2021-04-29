@@ -20,10 +20,41 @@ def create_df(filename=None):
     df.sort_values('timestamp',inplace=True)
     
     
+    user_group = df.groupby('user_id').size()
+
     print(df.nunique())
     print(df.shape)
-    
+    print("Minimum Session Length: {:d}".format(user_group.min()))
+    print("Maximum Session Length: {:d}".format(user_group.max()))
+    print("Average Session Length: {:.2f}".format(user_group.mean()))
     return df.reset_index(drop=True)
+
+
+def filter_df(df=None,item_min=10):
+    print("="*10,"Filtering Sessions <= {:d}  DataFrame".format(item_min),"="*10)
+
+    if df is None:
+        return 
+        
+    user_counts = df.groupby('user_id').size()
+    user_subset = np.in1d(df.user_id,user_counts[user_counts >= item_min].index)
+    
+    filter_df = df[user_subset].reset_index(drop=True)
+    
+    
+    assert (filter_df.groupby('user_id').size() < item_min).sum() == 0    
+    
+    user_group = filter_df.groupby('user_id').size()
+
+    print(filter_df.nunique())
+    print(filter_df.shape)
+    print("Minimum Session Length: {:d}".format(user_group.min()))
+    print("Maximum Session Length: {:d}".format(user_group.max()))
+    print("Average Session Length: {:.2f}".format(user_group.mean()))
+    
+    return filter_df
+
+
 
 class reset_df(object):
     
@@ -55,7 +86,8 @@ def create_user_history(df=None):
 
     user_history = {}
     for uid in tqdm(df.user_id.unique()):
-        user_history[uid] = df[df.user_id == uid].item_id.values.tolist()
+        sequence = df[df.user_id == uid].item_id.values.tolist()
+        user_history[uid] = sequence
             
     return user_history
 
@@ -63,6 +95,7 @@ def train_val_test_split(user_history=None,max_length=200):
     if user_history is None:
         return None
     
+    max_length = max_length + 1
 
     print("="*10,"Splitting User Histories into Train, Validation, and Test Splits","="*10)
     train_history = {}
